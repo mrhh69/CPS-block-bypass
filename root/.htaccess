@@ -1,0 +1,5 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    #RewriteRule "^/hi(.*)"  "/otherindex.html"
+    RewriteRule "^(.*)" "request.php"
+</IfModule>
