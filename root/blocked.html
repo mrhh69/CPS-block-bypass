@@ -1,0 +1,129 @@
+<html>
+
+<div id="topcontainer">
+    <div id="r1" class="fader">really?</div><br>
+    <div id="r2" class="fader">I guess I don't know what I was expecting</div><br>
+    <div id="r3" class="fader">but I expected more from you</div><br>
+    <div id="r4" class="fader"v>I was looking forward to bypassing stupid CPS <a href="http://orteil.dashnet.org/cookieclicker/">blocks</a> with you...</div><br>
+    <div id="r5" class="fader">but you went ahead and threw all that away, just for <a id="plink">this</a></div><br>
+    <div id="r6" class="fader">now, rather than being a vessel for good DNS block bypassing, </div><br>
+    <div id="r7" class="fader">I have become what I swore to destroy.</div><br>
+    <div id="r8" class="fader"><button id="leavebutton">go back to the homepage...</button></div><br>
+    <div id="r9" class="fader">unless?</div>
+    <br>
+    <div id="r10" class="fader">
+        Maybe I really thought you should be entrusted with this power.<br>
+        And gave you the password (for whatever reason).<br>
+        Enter it here:
+        <form action="/" method="post">
+            <input type="text" name="password"></input>
+            <input type="submit" value="submit"/>
+        </form>
+
+    </div>
+</div>
+
+<div id="footercontainer">
+    (click to continue)
+</div>
+
+<style>
+
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+#topcontainer {
+    position: absolute;
+    height: 90%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+#footercontainer {
+    position: absolute;
+    top: 90%;
+    height: 10%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+
+.fader {
+    display: inline;
+    opacity: 0;
+    transition: opacity 2s;
+}
+.fader.fadein {
+    opacity: 1;
+}
+#r9 {
+    font-size: 10;
+    left: 50px;
+    top: 20px;
+    bottom: 20px;
+}
+
+</style>
+
+<script>
+const load_ids = [
+    "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10",
+];
+var loaded = 0;
+document.getElementById("plink").href = getCookie("cookiename");
+
+
+document.body.onclick = function() {
+    document.getElementById(load_ids[loaded]).classList.add('fadein');
+    loaded++;
+    if (loaded >= load_ids.length) {
+        document.body.onclick = null;
+        document.getElementById("leavebutton").onclick = do_leave;
+        return;
+    }
+}
+
+function do_leave() {
+    deleteAllCookies();
+    window.location = "/";
+    //document.location =
+}
+
+
+document.getElementById(load_ids[0]).classList.add('fadein');
+loaded++;
+
+
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function deleteAllCookies() {
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
+
+</script>
+
+</html>
