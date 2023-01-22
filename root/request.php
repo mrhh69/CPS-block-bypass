@@ -1,13 +1,26 @@
 <?php
 
+$home = "/home/vol19_2/epizy.com/epiz_33402727/";
+$pass_hash = "b422bf3b52ed4c3840004ba515e6f4a1d8f05f5059abf93a5c8e2bf459e05a9a";
+$pass_algo = "sha256";
+
 $session_cookie = '______now_thats_a_lot_of_underscores______';
+$pass_cookie = '__________e_v_e_n_____m_o_r_e_______u_n_d_e_r_s_c_o_r_e_s__________';
 $get_tag = 'new_session';
-$base_url = "https://google.com/";
+
+
+/* if post request password, set cookie */
+if (isset($_POST['password'])) {
+    $new_hash = hash($pass_algo, $_POST['password']);
+    setcookie($pass_cookie, $new_hash);
+    header("Location: /");
+    exit;
+}
+
 /* first, check for session cookie */
 if (!isset($_COOKIE[$session_cookie])) {
     if (!isset($_GET[$get_tag])) {
         /* if user is just starting out, send to homepage */
-        /* nothign here */
     }
     else {
         /* if the homepage sent the user here, set session cookie from request */
@@ -20,27 +33,46 @@ if (!isset($_COOKIE[$session_cookie])) {
         $base_url = $parsed['scheme'] . "://" . $parsed['host'] . "/";
         $uri = $parsed['path'];
         if (!setcookie($session_cookie, $base_url)) {die("setcookie failed :(");}
-        //do_request($base_url, $uri);
         header(sprintf("Location: %s", $uri));
         exit;
     }
 }
 else {
     $base_url = $_COOKIE[$session_cookie];
+    $host = parse_url($base_url,  PHP_URL_HOST);
+    if ($host === false) {die("invalid url");}
+    if ($host === null) {die(sprintf("no host in url '%s'", $base_url));}
+
+    $priveleged = false;
+    /* if password hash is there */
+    if (isset($_COOKIE[$pass_cookie])) {
+        /* test it */
+        if (valid_pass_hash($_COOKIE[$pass_cookie])) {$priveleged = true;}
+    }
+
+    if (!$priveleged) {
+        /* check blocklist */
+        if (is_blocked($host)) {
+            do_blocked();
+        }
+    }
+    
+
     $uri = $_SERVER['REQUEST_URI'];
-    //printf("2<br>base_url:%s<br>uri:%s", $base_url, $uri);
     do_request($base_url, $uri);
     exit;
 }
 
 
+/* host is blocked */
+function do_blocked() {
+    //printf("host is blocked!<br>");// exit;
+    $page_str = file_get_contents("blocked.html");
+    printf("%s", $page_str);
+    exit;
+}
 
 function do_request($base_url, $uri) {
-    //https://orteil.dashnet.org/cookieclicker/
-    //$base_url = "https://google.com/";
-    //$base_url = "http://orteil.dashnet.org/"; /* orteil NOT ortiel (fucking typos) */
-    //$base_url = "https://reddit.com/";
-    //$uri = $_SERVER['REQUEST_URI'];
     $url = $base_url . $uri;
 
     // set up curl session
@@ -77,11 +109,6 @@ function do_request($base_url, $uri) {
         $header_txt = substr($content, 0, $header_size);
         $body_txt = substr($content, $header_size);
         $reqs = explode("\r\n\r\n", $header_txt);
-        /*
-        for ($i = 0; $i < count($reqs) - 1; $i++) {
-            printf("%d: '%s'<br>", strlen($reqs[$i]), $reqs[$i]);
-        }
-        */
 
         $header = $reqs[count($reqs) - 2];
         $body = $body_txt;
@@ -117,14 +144,32 @@ function do_request($base_url, $uri) {
         }
 
         echo $body;
-        /*
-        $fp = $_SERVER['DOCUMENT_ROOT'] . "/log.txt";
-        $myfile = fopen($fp, "a") or die("Unable to open file!");
-        fwrite($myfile, sprintf("%s\n", $uri));
-        fclose($myfile);
-        echo $content;
-        */
     }
+}
+
+
+/* yes, I realize I'm filtering DNS, the one thing I swore to destroy, but what can you do? */
+function is_blocked($host) {
+    $re = "/^" . preg_quote($host) . "$/m";
+    $block_txt = file_get_contents("block.txt");
+    //printf("%s<br>", $re);
+    $match = preg_match($re, $block_txt);
+    if ($match === false) {die("preg_match error");}
+    if ($match == 1) {
+        /* is in blocklist */
+        return true;
+    }
+    else {
+        /* not in blocklist */
+        return false;
+    }
+    die("idek");
+}
+
+/* check password hash against real hash */
+function valid_pass_hash($test) {
+    global $pass_hash;
+    return $test == $pass_hash;
 }
 
 ?>
@@ -133,7 +178,7 @@ function do_request($base_url, $uri) {
 
 <h1 style="display: inline;">Max's [alleged] HTTP Web Proxy</h1> <i style="display: inline;">(I think that's what it's called)</i><h1 style="display: inline;"> Thing</h1><br>
 <i><b>[allegedly] Bypass CPS internet restrictions! It's so easy!</b></i><br>
-<b>SITE IS CURRENTLY UNDER DEVELOPMENT (source code changing minute-by-minute)</b><br>
+<b>SITE IS CURRENTLY UNDER DEVELOPMENT [by an idiot] VERSION ALPHA0.0.69SIGMA</b><br>
 
 <br>
 <form action="/request.php" method="get">
